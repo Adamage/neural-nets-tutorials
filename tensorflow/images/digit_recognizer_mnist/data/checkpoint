@@ -1,0 +1,2 @@
+model_checkpoint_path: "C:\\Users\\msi\\Source\\Repos\\neural-nets-tutorials\\tensorflow\\images\\digit_recognizer_mnist\\data\\model.ckpt"
+all_model_checkpoint_paths: "C:\\Users\\msi\\Source\\Repos\\neural-nets-tutorials\\tensorflow\\images\\digit_recognizer_mnist\\data\\model.ckpt"
