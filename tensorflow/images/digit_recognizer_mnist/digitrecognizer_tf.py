@@ -6,6 +6,8 @@ import tensorflow as tf
 import os
 import sys
 
+from sklearn.preprocessing import StandardScaler
+
 
 class Tools:
     @staticmethod
@@ -235,8 +237,12 @@ if __name__ == "__main__":
         #            comments='',
         #            fmt='%d')
         #
+        test_images = StandardScaler().fit_transform(np.float32(test_images.values))
+        test_images = test_images.reshape(-1, 28, 28, 1)
         layer1_grid = layer1.eval(feed_dict={x: test_images[IMAGE_TO_DISPLAY:IMAGE_TO_DISPLAY + 1], keep_prob: 1.0})
-        plt.imshow(layer1_grid[0])
+        plt.imshow(test_images[k, :, :, 0])
+        plt.show()
+        print(predicted_labels[IMAGE_TO_DISPLAY])
         input('Generated test image layer1..press')
         layer2_grid = layer2.eval(feed_dict={x: test_images[IMAGE_TO_DISPLAY:IMAGE_TO_DISPLAY + 1], keep_prob: 1.0})
         plt.imshow(layer2_grid[0])
