@@ -1,0 +1,88 @@
+command=Train:Output:DumpNodeInfo:Test
+
+modelPath = "models/trained_model.dnn"
+dimension = 2                    # input data dimensions
+
+Train = {
+	action = "train"
+	
+	# Define how the network is built.
+	
+	BrainScriptNetworkBuilder = {
+		# sample and label dimensions
+		Sdim = $dimension$
+		LDim = 1
+		features = Input {Sdim}
+		labels = Input {LDim}
+		
+		# parameters to learn: bias and weights
+		b = ParameterTensor {LDim}
+		w = ParameterTensor {(LDim:Sdim)}
+		
+		# ops
+		p = Sigmoid (w * features + b)
+		# Logistic loss function:
+		lr = Logistic (labels, p)
+		err = SquareError (labels, p)
+		
+		# outputs
+		featureNodes = (features)
+		labelNodes = (labels)
+		criterionNodes = (lr)
+		evaluationNods = (err)
+		outputNodes = (p)
+	}
+	
+	# Stochastic Gradient Descent configuration.
+	# epichSize = 0: means all of training data will be examined for every epoch (iteration)
+	SGD = {
+		epochSize = 0
+		maxEpochs = 50
+		minibatchSize = 25
+		learningRatesPerSample = 0.04
+	}
+	
+	# Data reader configuration.
+	reader = {
+		readerType = "CNTKTextFormatReader"
+    file = "Train_cntk_text.txt"
+    input = {
+        features = { dim = 2 ; format = "dense" }
+        labels   = { dim = 1 ; format = "dense" }
+    }
+	}
+}
+
+# output the results
+# Outputs are the probabilities that the sample belongs to class 1 - the variable 'p'
+Output = {
+    action = "write"
+    reader = {
+        readerType = "CNTKTextFormatReader"
+        file = "Test_cntk_text.txt"
+        input = {
+            features = { dim = $dimension$ ; format = "dense" }
+            labels   = { dim = 1           ; format = "dense" }
+        }
+    }
+    outputPath = "output_probabilities.txt"
+}
+
+Test = {
+    action = "test"
+    reader = {
+        readerType = "CNTKTextFormatReader"
+        file = "Test_cntk_text.txt"
+        input = {
+            features = { dim = $dimension$ ; format = "dense" }
+            labels   = { dim = 1           ; format = "dense" }
+        }
+    }
+}
+
+DumpNodeInfo = {
+    action = "dumpNode"
+    printValues = true
+}
+
+
