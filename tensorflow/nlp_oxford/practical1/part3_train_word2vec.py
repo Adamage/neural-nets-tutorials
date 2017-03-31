@@ -1,9 +1,8 @@
-from gensim.models import Word2Vec
-from utils import ensure_tokenized_sentences, load_gensim_model
+from utils import gensim_utils
 
 if __name__ == "__main__":
-    model = load_gensim_model(model_path='model',
-                              sentences_path='sentences.json')
+    model = gensim_utils.load_gensim_model(model_path='model',
+                                           sentences_path='sentences.json')
     # Switching to  just KeyedVectors instance of the whole model to free memory.
     word_vectors = model.wv
     del model

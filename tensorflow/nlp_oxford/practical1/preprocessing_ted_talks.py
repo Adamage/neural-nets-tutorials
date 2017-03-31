@@ -3,14 +3,14 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils import create_frequency_dict, ensure_tokenized_sentences
+from utils import preprocessing_utils
 
 if __name__ == "__main__":
     dump_path = 'sentences.json'
-    sentences_ted = ensure_tokenized_sentences(dump_path)
+    sentences_ted = preprocessing_utils.ensure_tokenized_sentences(dump_path)
 
     #  Count frequencies
-    slownik = create_frequency_dict(sentences_ted)
+    slownik = preprocessing_utils.create_frequency_dict(sentences_ted)
     counter = Counter(slownik)
     top_100 = counter.most_common(100)
 
