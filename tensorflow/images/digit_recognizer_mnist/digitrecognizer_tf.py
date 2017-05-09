@@ -8,64 +8,7 @@ import sys
 
 from sklearn.preprocessing import StandardScaler
 
-
-class Tools:
-    @staticmethod
-    def display(image, width, height):
-        image = image.reshape(width, height)
-        plt.imshow(image, cmap=cm.get_cmap("binary"))
-
-    @staticmethod
-    def dense_to_hot(labels_dense, num_classes):
-        num_labels = labels_dense.shape[0]
-        index_offset = np.arange(num_labels) * num_classes
-        labels_one_hot = np.zeros((num_labels, num_classes))
-        labels_one_hot.flat[index_offset + labels_dense.ravel()] = 1
-        return labels_one_hot
-
-    @staticmethod
-    def weight_variable(shape):
-        initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial)
-
-    @staticmethod
-    def bias_variable(shape):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial)
-
-    @staticmethod
-    def convolution2d(x, w):
-        return tf.nn.conv2d(x, w, strides=[1,1,1,1], padding='SAME')
-
-    @staticmethod
-    def max_pool_2x2(x):
-        return tf.nn.max_pool(x, ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
-
-
-def next_batch(batch_size):
-    global train_images
-    global train_labels
-    global index_in_epoch
-    global epochs_completed
-
-    start = index_in_epoch
-    index_in_epoch += batch_size
-
-    # when all trainig data have been already used, it is reorder randomly
-    if index_in_epoch > num_examples:
-        # finished epoch
-        epochs_completed += 1
-        # shuffle the data
-        perm = np.arange(num_examples)
-        np.random.shuffle(perm)
-        train_images = train_images[perm]
-        train_labels = train_labels[perm]
-        # start next epoch
-        start = 0
-        index_in_epoch = batch_size
-        assert batch_size <= num_examples
-    end = index_in_epoch
-    return train_images[start:end], train_labels[start:end]
+from tools import Tools, SimpleMnistTrainer
 
 LEARNING_RATE = 1e-4
 TRAINING_ITERATIONS = 1500
@@ -104,6 +47,9 @@ if __name__ == "__main__":
     # Define Neural network.
     x = tf.placeholder('float', shape=[None, image_size])
     y_labels = tf.placeholder('float', shape=[None, labels_count])
+    trainer = SimpleMnistTrainer()
+    trainer.train_images = train_images
+    trainer.train_labels = train_labels
 
     # First convolutional layer
     W_conv1 = Tools.weight_variable(shape=[5, 5, 1, 32])
@@ -164,8 +110,6 @@ if __name__ == "__main__":
     display_step = 1
 
     # Stochastic training.
-    epochs_completed = 0
-    index_in_epoch = 0
     num_examples = train_images.shape[0]
 
     saver = tf.train.Saver()
@@ -178,7 +122,7 @@ if __name__ == "__main__":
                 saver.restore(session, ckpt.model_checkpoint_path)
         else:
             for i in range(TRAINING_ITERATIONS):
-                batch_xs, batch_ys = next_batch(BATCH_SIZE)
+                batch_xs, batch_ys = trainer.next_batch(BATCH_SIZE)
                 if i % display_step == 0 or (i + 1) == TRAINING_ITERATIONS:
                     train_accuracy = accuracy.eval(feed_dict={x: batch_xs, y_labels: batch_ys, keep_prob: 1.0})
 
