@@ -51,14 +51,14 @@ class Tools:
         return labels_one_hot
 
     @staticmethod
-    def weight_variable(shape):
+    def weight_variable(shape, name=None):
         initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial)
+        return tf.Variable(initial, name=name)
 
     @staticmethod
-    def bias_variable(shape):
+    def bias_variable(shape, name=None):
         initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial)
+        return tf.Variable(initial, name=name)
 
     @staticmethod
     def convolution2d(x, w):
