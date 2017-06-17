@@ -23,5 +23,5 @@ def mandelbrot(h, w, maxit=20):
 
     return divtime
 
-plt.imshow(mandelbrot(1400, 1400, maxit=100))
+plt.imshow(mandelbrot(3000, 3000, maxit=300))
 plt.show()

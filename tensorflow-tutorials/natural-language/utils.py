@@ -10,34 +10,40 @@ from lxml import etree
 
 
 class preprocessing_utils:
-    @staticmethod
-    def get_ted_data():
-        if not os.path.isfile('ted_en-20160408.zip'):
+    def __init__(self):
+        script_dir = os.path.dirname(__file__)
+        self.raw_data_dir = os.path.join(script_dir, 'raw_data')
+        self.outputs_dir = os.path.join(script_dir, 'outputs')
+        self.pretrained_dir = os.path.join(script_dir, 'pretrained')
+
+        for directory in [self.raw_data_dir, self.outputs_dir, self.pretrained_dir]:
+            if not os.path.isdir(directory):
+                os.mkdir(directory)
+
+    def get_ted_data(self):
+        if not os.path.isfile(os.path.join(self.raw_data_dir, 'ted_en-20160408.zip')):
             urllib.request.urlretrieve(
                 "https://wit3.fbk.eu/get.php?path=XML_releases/xml/ted_en-20160408.zip&filename=ted_en-20160408.zip",
                 filename="ted_en-20160408.zip")
 
-    @staticmethod
-    def get_wiki_data():
-        if not os.path.isfile('wikitext-103-raw-v1.zip'):
+    def get_wiki_data(self):
+        if not os.path.isfile(os.path.join(self.raw_data_dir, 'wikitext-103-raw-v1.zip')):
             urllib.request.urlretrieve("https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-103-v1.zip",
                                        filename="wikitext-103-raw-v1.zip")
 
-    @staticmethod
-    def load_wiki_raw_data():
-        preprocessing_utils.get_wiki_data()
+    def load_wiki_raw_data(self):
+        self.get_wiki_data()
 
-        with zipfile.ZipFile('wikitext-103-raw-v1.zip') as zf:
+        with zipfile.ZipFile(os.path.join(self.outputs_dir, 'wikitext-103-raw-v1.zip')) as zf:
             try:
                 text_loaded = zf.open('wikitext-103/wiki.train.tokens', 'r').read()
                 return str(text_loaded, encoding='utf-8')
             except Exception as e:
                 print("Failed to load wiki raw data from zipped file. Details: " + str(e))
 
-    @staticmethod
-    def load_wiki_sentences():
+    def load_wiki_sentences(self):
         sentences = []
-        loaded_data = preprocessing_utils.load_wiki_raw_data()
+        loaded_data = self.load_wiki_raw_data()
         for line in loaded_data.split('\n'):
             sentence = [i for i in line.split('.') if (i and len(i.split()) >= 5)]
             sentences.extend(sentence)
@@ -80,9 +86,8 @@ class preprocessing_utils:
                     slownik[word] += 1
         return slownik
 
-    @staticmethod
-    def extract_subtitles():
-        with zipfile.ZipFile('ted_en-20160408.zip', 'r') as z:
+    def extract_subtitles(self):
+        with zipfile.ZipFile(os.path.join(self.raw_data_dir, 'ted_en-20160408.zip'), 'r') as z:
             doc = etree.parse(z.open('ted_en-20160408.xml', 'r'))
         input_text = '\n'.join(doc.xpath('//content/text()'))
         del doc
@@ -98,13 +103,12 @@ class preprocessing_utils:
         with open(filepath, 'r') as f:
             return json.load(f)
 
-    @staticmethod
-    def ensure_tokenized_sentences(dump_path):
+    def ensure_tokenized_sentences(self, dump_path):
         if os.path.isfile(dump_path):
             sentences_ted = preprocessing_utils.deserialize_from_json(dump_path)
         else:
-            preprocessing_utils.get_ted_data()
-            input_subtitles = preprocessing_utils.extract_subtitles()
+            self.get_ted_data()
+            input_subtitles = self.extract_subtitles()
             input_text_noparens = re.sub(r'\([^)]*\)', '', input_subtitles)
             del input_subtitles
             sentences_strings_ted = preprocessing_utils.get_sentences_strings(input_text_noparens)
@@ -123,13 +127,22 @@ class preprocessing_utils:
 
 class gensim_utils:
     @staticmethod
-    def train_gensim_model_and_load(sentences):
+    def ensure_gensim_model(path_to_preprocessed_sentences, path_to_trained_model):
+        if os.path.isfile(path_to_trained_model):
+            model = gensim_utils.load_gensim_model(model_path=path_to_trained_model)
+        else:
+            model = gensim_utils.train_gensim_model_and_load(path_to_preprocessed_sentences, path_to_trained_model)
+
+        return model
+
+    @staticmethod
+    def train_gensim_model_and_load(sentences, path_to_trained_model):
         model = Word2Vec(sentences,
-                         size=100,
-                         window=5,
+                         size=300,
+                         window=7,
                          min_count=5,
                          workers=4)
-        model.save()
+        model.save(path_to_trained_model)
         return model
 
     @staticmethod

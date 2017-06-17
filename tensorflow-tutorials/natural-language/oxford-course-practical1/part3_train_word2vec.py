@@ -1,8 +1,13 @@
-from utils import gensim_utils
+import os
+
+from utils import gensim_utils, preprocessing_utils
 
 if __name__ == "__main__":
-    model = gensim_utils.load_gensim_model(model_path='model',
-                                           sentences_path='sentences.json')
+    dump_path = 'sentences.json'
+    ppu = preprocessing_utils()
+    sentences_ted = ppu.ensure_tokenized_sentences(dump_path)
+    model = gensim_utils.ensure_gensim_model(sentences_ted, 'model')
+
     # Switching to  just KeyedVectors instance of the whole model to free memory.
     word_vectors = model.wv
     del model

@@ -7,12 +7,10 @@ import os
 
 if __name__ == "__main__":
     dump_path = 'sentences.json'
-    model = None
-    sentences_ted = preprocessing_utils.ensure_tokenized_sentences(dump_path)
-    if os.path.isfile('model'):
-        model = gensim_utils.load_gensim_model(model_path='model')
-    else:
-        model = gensim_utils.train_gensim_model_and_load(sentences_ted)
+    ppu = preprocessing_utils()
+    word2vec_model_path = os.path.join(ppu.outputs_dir, 'ted_word2vec_model')
+    sentences_ted = ppu.ensure_tokenized_sentences(dump_path)
+    model = gensim_utils.ensure_gensim_model(sentences_ted, word2vec_model_path)
 
     # Count frequencies.
     slownik = preprocessing_utils.create_frequency_dict(sentences_ted)
