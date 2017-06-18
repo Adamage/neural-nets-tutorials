@@ -18,13 +18,14 @@ if __name__ == "__main__":
     top_1000 = [x[0] for x in counter.most_common(1000)]
 
     # Visualise in 2D.
-    tsne_obj = TSNE(n_components=2, random_state=0)
+    tsne_obj = TSNE(n_components=3, random_state=0, perplexity=40)
     words_top_1000_vectors = model[top_1000]
     words_top_1000_tsne = tsne_obj.fit_transform(words_top_1000_vectors)
 
     fig = figure(tools="pan,wheel_zoom,reset,save",
                  toolbar_location="above",
-                 title="word2vec T-SNE visualisation for top 1000 words")
+                 title="word2vec T-SNE visualisation for top 1000 words",
+                 plot_width=1000, plot_height=800)
 
     source = ColumnDataSource(data=
                                 dict(
